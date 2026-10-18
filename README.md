@@ -8,4 +8,14 @@ Every example has the same set-up.
 
 One actor folder (with the actor definition). And one client folder.
 
+You can run any example. by doing 
+
+```
+bun run example "example-name"
+```
+
+If none provided, it will ask you which one to run.
+
+> Note: Due to the way durable-actors dev works, you can only run one example at a time.
+
 We hope this serves as great inspiration for you to build some really cool stuff!
