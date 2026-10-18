@@ -1,4 +1,4 @@
-import { Actor, Persisted } from "durable-actors"
+import { Actor, Persisted } from "terse-sdk/actor"
 
 export class Counter extends Actor {
     @Persisted private value = 0

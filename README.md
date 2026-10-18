@@ -18,6 +18,6 @@ This will run the dev server for the actors, and launch whatever service for the
 
 If none provided, it will ask you which one to run.
 
-> Note: Due to the way durable-actors dev works, you can only run one example at a time.
+> Note: Due to the way `terse actor dev` works, you can only run one example at a time.
 
 We hope this serves as great inspiration for you to build some really cool stuff!

@@ -207,7 +207,7 @@ function rawQualifiedId(example: Example): string {
 async function runExample(example: Example): Promise<void> {
     if (await portOpen(actorPort)) {
         console.error(
-            `Port ${actorPort} is already in use. durable-actors dev uses that port, so only one example can run at a time.`,
+            `Port ${actorPort} is already in use. terse actor dev uses that port, so only one example can run at a time.`,
         )
         process.exitCode = 1
         return
@@ -221,7 +221,7 @@ async function runExample(example: Example): Promise<void> {
     console.log(`Starting ${example.qualifiedId}`)
     const children: ChildProcess[] = []
     const stop = bindShutdown(children)
-    const actor = start(actorDir, ["node_modules/durable-actors/bin/durable-actors.js", "dev"])
+    const actor = start("terse", actorDir, ["actor", "dev"])
     children.push(actor)
 
     const ready = await waitForPort(actorPort, actor, readyTimeoutMs)
@@ -232,15 +232,15 @@ async function runExample(example: Example): Promise<void> {
         return
     }
 
-    const client = start(clientDir, ["run", "start"])
+    const client = start("bun", clientDir, ["run", "start"])
     children.push(client)
     const clientCode = await exited(client)
     await stop("SIGTERM")
     process.exitCode = clientCode ?? 1
 }
 
-function start(cwd: string, args: readonly string[]): ChildProcess {
-    const child = spawn("bun", [...args], {
+function start(command: string, cwd: string, args: readonly string[]): ChildProcess {
+    const child = spawn(command, [...args], {
         cwd,
         detached: true,
         // Inherit the terminal so actor and client output stays line-buffered.

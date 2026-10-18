@@ -4,7 +4,7 @@
     
 // Import the actor types, then define you actor.
 
-import { Actor, ActorSocket, Persisted } from "durable-actors"
+import { Actor, ActorSocket, Persisted } from "terse-sdk/actor"
 
 export class HelloWorld extends Actor<null, null, string> {
     async onConnect(socket: ActorSocket<null, string>): Promise<void> {
