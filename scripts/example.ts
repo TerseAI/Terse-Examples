@@ -1,19 +1,15 @@
+import { cancel, isCancel, select } from "@clack/prompts"
 import { spawn, type ChildProcess } from "node:child_process"
 import { access, readdir, readFile } from "node:fs/promises"
 import { createConnection } from "node:net"
 import path from "node:path"
-import { createInterface } from "node:readline/promises"
-import { styleText } from "node:util"
 
 const root = path.resolve(import.meta.dirname, "..")
 const actorPort = 7100
 const readyTimeoutMs = 60_000
 
-const color = process.stdout.isTTY
-
 type Example = {
     readonly sectionId: string
-    readonly sectionLabel: string
     readonly sectionOrder: number
     readonly id: string
     readonly qualifiedId: string
@@ -44,67 +40,79 @@ async function main(args: readonly string[]): Promise<void> {
     }
 
     const query = args[0]
-    if (query === undefined) {
-        printCatalog(examples)
-        await promptForExample(examples)
-        return
-    }
+    const chosen = query === undefined ? await chooseExample(examples) : await resolveOrChoose(examples, query)
+    if (chosen) await runExample(chosen)
+}
 
+async function resolveOrChoose(examples: readonly Example[], query: string): Promise<Example | undefined> {
     const resolution = resolveExample(examples, query)
     switch (resolution.kind) {
         case "run":
-            await runExample(resolution.example)
-            return
+            return resolution.example
         case "section":
-            printCatalog(resolution.examples)
-            return
         case "ambiguous":
-            console.error(`More than one example is named ${query}:\n`)
-            printCatalog(resolution.examples)
-            console.error(`\nName the section too, for example: bun run example ${resolution.examples[0]?.qualifiedId}`)
-            process.exitCode = 1
-            return
+            return chooseExample(resolution.examples)
         case "missing":
-            console.error(`No example named ${query}.\n`)
-            printCatalog(examples)
-            process.exitCode = 1
-            return
+            console.error(`No example named ${query}.`)
+            return chooseExample(examples)
         default:
             throw resolution satisfies never
     }
 }
 
-async function promptForExample(examples: readonly Example[]): Promise<void> {
-    if (!process.stdin.isTTY) return
-    const input = createInterface({ input: process.stdin, output: process.stdout })
-    try {
-        while (true) {
-            const answer = (await input.question("Example: ")).trim()
-            if (answer.length === 0) return
-            const resolution = resolveExample(examples, answer)
-            switch (resolution.kind) {
-                case "run":
-                    input.close()
-                    await runExample(resolution.example)
-                    return
-                case "section":
-                    console.log()
-                    printCatalog(resolution.examples)
-                    continue
-                case "ambiguous":
-                    console.error(`\nMore than one example is named ${answer}. Include the section.\n`)
-                    printCatalog(resolution.examples)
-                    continue
-                case "missing":
-                    console.error(`\nNo example named ${answer}.\n`)
-                    continue
-                default:
-                    throw resolution satisfies never
-            }
-        }
-    } finally {
-        input.close()
+async function chooseExample(examples: readonly Example[]): Promise<Example | undefined> {
+    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+        for (const example of examples) console.error(example.qualifiedId)
+        process.exitCode = 1
+        return undefined
     }
+
+    const sections = sectionIds(examples)
+    const inSection = sections.length > 1 ? await chooseSection(examples, sections) : examples
+    if (inSection === undefined) return undefined
+
+    const choice = await select({
+        message: "Which example?",
+        options: inSection.map(example => ({
+            value: example.qualifiedId,
+            label: example.id,
+            hint: example.description,
+        })),
+    })
+    if (isCancel(choice)) {
+        cancel("No example selected.")
+        return undefined
+    }
+    const example = inSection.find(item => item.qualifiedId === choice)
+    if (example === undefined) throw new Error(`Missing example ${choice}`)
+    return example
+}
+
+async function chooseSection(examples: readonly Example[], sections: readonly string[]): Promise<readonly Example[] | undefined> {
+    const choice = await select({
+        message: "Which section?",
+        options: sections.map(sectionId => ({
+            value: sectionId,
+            label: sectionId,
+            hint: examples
+                .filter(example => example.sectionId === sectionId)
+                .map(example => example.id)
+                .join(", "),
+        })),
+    })
+    if (isCancel(choice)) {
+        cancel("No example selected.")
+        return undefined
+    }
+    return examples.filter(example => example.sectionId === choice)
+}
+
+function sectionIds(examples: readonly Example[]): readonly string[] {
+    const ids: string[] = []
+    for (const example of examples) {
+        if (!ids.includes(example.sectionId)) ids.push(example.sectionId)
+    }
+    return ids
 }
 
 function printUsage(): void {
@@ -114,7 +122,7 @@ function printUsage(): void {
   bun run example <section>/<example>
   bun run example <section>
 
-With no name, lists every example grouped by section.
+With no name, asks you to pick an example and runs it.
 A bare example name runs it when that name is unique.`)
 }
 
@@ -126,13 +134,11 @@ async function discoverExamples(repoRoot: string): Promise<readonly Example[]> {
         const numbered = /^(\d+)_(.+)$/u.exec(sectionName)
         const sectionId = numbered?.[2] ?? sectionName
         const sectionOrder = numbered ? Number(numbered[1]) : Number.MAX_SAFE_INTEGER
-        const sectionLabel = numbered ? `${numbered[1]}  ${sectionId}` : sectionId
         for (const exampleDir of await directories(sectionDir)) {
             if (!(await isExample(exampleDir))) continue
             const id = path.basename(exampleDir)
             found.push({
                 sectionId,
-                sectionLabel,
                 sectionOrder,
                 id,
                 qualifiedId: `${sectionId}/${id}`,
@@ -198,24 +204,6 @@ function rawQualifiedId(example: Example): string {
     return `${sectionDir}/${example.id}`
 }
 
-function printCatalog(examples: readonly Example[]): void {
-    const width = Math.max(...examples.map(example => example.id.length))
-    let currentSection = ""
-    for (const example of examples) {
-        if (example.sectionLabel !== currentSection) {
-            if (currentSection.length > 0) console.log()
-            currentSection = example.sectionLabel
-            console.log(paint(example.sectionLabel, "bold"))
-        }
-        const description = example.description === undefined ? "" : `   ${paint(example.description, "dim")}`
-        console.log(`  ${example.id.padEnd(width)}${description}`)
-    }
-    const sample = examples[0]
-    if (sample === undefined) return
-    console.log(`\nRun one with ${paint(`bun run example ${sample.id}`, "cyan")}`)
-    console.log(`Include the section when you need to: ${paint(`bun run example ${sample.qualifiedId}`, "cyan")}`)
-}
-
 async function runExample(example: Example): Promise<void> {
     if (await portOpen(actorPort)) {
         console.error(
@@ -230,7 +218,7 @@ async function runExample(example: Example): Promise<void> {
     await ensureInstalled(actorDir)
     await ensureInstalled(clientDir)
 
-    console.log(paint(`Starting ${example.qualifiedId}`, "bold"))
+    console.log(`Starting ${example.qualifiedId}`)
     const children: ChildProcess[] = []
     const stop = bindShutdown(children)
     const actor = start(actorDir, ["node_modules/durable-actors/bin/durable-actors.js", "dev"])
@@ -349,8 +337,4 @@ async function exists(file: string): Promise<boolean> {
         () => true,
         () => false,
     )
-}
-
-function paint(text: string, style: "bold" | "dim" | "cyan"): string {
-    return color ? styleText(style, text) : text
 }
