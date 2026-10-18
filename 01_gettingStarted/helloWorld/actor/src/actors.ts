@@ -8,6 +8,7 @@ import { Actor, ActorSocket, Persisted } from "durable-actors"
 
 export class HelloWorld extends Actor<null, null, string> {
     async onConnect(socket: ActorSocket<null, string>): Promise<void> {
+        console.log("Client connected, about to tell them hello")
         await socket.send("Hello, world!")
     }
 }

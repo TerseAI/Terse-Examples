@@ -1,0 +1,11 @@
+{
+    "name": "client",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "start": "bun index.ts"
+    },
+    "dependencies": {
+        "commander": "^14.0.3"
+    }
+}
