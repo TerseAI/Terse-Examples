@@ -1,8 +1,8 @@
 import { Command } from "commander"
-import { Counter } from "../actor/src/actors.ts"
+import { actors } from "./generated"
 
 await new Command()
     .action(async () => {
-        console.log(await Counter.get("counter").increment())
+        console.log(await actors.Counter.get("counter").increment())
     })
     .parseAsync()
