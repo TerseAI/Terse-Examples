@@ -8,11 +8,13 @@ Every example has the same set-up.
 
 One actor folder (with the actor definition). And one client folder.
 
-You can run any example. by doing 
+You can run any example. by doing:
 
 ```
-bun run example "example-name"
+bun run example helloWorld
 ```
+
+This will run the dev server for the actors, and launch whatever service for the client.
 
 If none provided, it will ask you which one to run.
 

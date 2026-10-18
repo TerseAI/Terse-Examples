@@ -1,0 +1,13 @@
+{
+    "name": "terse-examples",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "example": "bun scripts/example.ts",
+        "check": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@types/node": "^22.0.0",
+        "typescript": "~5.9.3"
+    }
+}
