@@ -1,0 +1,19 @@
+{
+  "name": "actor",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "terse-sdk": "0.9.20",
+    "@earendil-works/chord": "1.2.0",
+    "@earendil-works/pi-ai": "1.2.0",
+    "@earendil-works/pi-durable": "1.2.0",
+    "modal": "^0.11.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

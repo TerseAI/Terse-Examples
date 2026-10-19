@@ -1,0 +1,701 @@
+:root {
+  color-scheme: light;
+  --background: #fff;
+  --surface: #f5f5f5;
+  --text: #222;
+  --muted: #666;
+  --hover: #404040;
+  --focus: #777;
+  --connecting: #b38b00;
+  --connected: #24854a;
+  --crashed: #b42318;
+}
+
+/* Base styles and shared controls */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+::selection {
+  background: #ddd;
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--background);
+  font-weight: 550;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+button:hover {
+  background: var(--hover);
+}
+
+button:disabled {
+  background: #e9e9e9;
+  color: var(--muted);
+  cursor: not-allowed;
+}
+
+input,
+textarea {
+  color: var(--text);
+  caret-color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 4px;
+}
+
+/* Page header */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  min-height: 64px;
+  padding: 12px 28px;
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brand {
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.connection {
+  flex: 0 0 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--connecting);
+}
+
+.connection[data-state="connected"] {
+  background: var(--connected);
+}
+
+.connection[data-state="crashed"] {
+  background: var(--crashed);
+}
+
+/* Chat on the left, the sandbox preview on the right. */
+
+.app {
+  display: flex;
+  height: 100dvh;
+  background: #d9d9d9;
+}
+
+.app[data-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* The iframe would otherwise swallow pointer events mid-drag. */
+.app[data-resizing] iframe {
+  pointer-events: none;
+}
+
+.panes {
+  display: flex;
+  flex: 0 0 var(--chat-width);
+  min-width: 320px;
+  overflow: auto;
+  background: #d9d9d9;
+}
+
+.divider {
+  flex: 0 0 3px;
+  position: relative;
+  cursor: col-resize;
+  touch-action: none;
+  transition: background-color 120ms ease;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  inset: 0 -4px;
+}
+
+.divider:hover,
+.app[data-resizing] .divider {
+  background: #909090;
+}
+
+.divider:focus-visible {
+  outline-offset: 0;
+}
+
+.pane {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 300px;
+  min-height: 300px;
+  background: var(--background);
+  container-type: inline-size;
+  transform-origin: top left;
+}
+
+.pane::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
+  transition: border-color 140ms ease;
+}
+
+.panes[data-single="false"] .pane[data-active]::after {
+  border-color: #909090;
+}
+
+.split {
+  display: flex;
+  flex: 1 1 0;
+  gap: 3px;
+  min-width: min-content;
+  min-height: min-content;
+}
+
+.split[data-direction="horizontal"] {
+  flex-direction: column;
+}
+
+.workspace {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1600px;
+  min-height: 0;
+  margin: 0 auto;
+}
+
+.brand-mark {
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.pane-tools {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.pane-tools button {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  background: transparent;
+  color: var(--muted);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.pane-tools button:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.panes[data-single="true"] [data-action="close"] {
+  display: none;
+}
+
+/* Conversation controls */
+
+.room-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 180px) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.room-controls input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.room-controls button {
+  padding: 9px 13px;
+  font-size: 13px;
+}
+
+.reset {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+
+/* Conversation messages */
+
+.scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 40px;
+  scrollbar-color: #bbb transparent;
+  scrollbar-width: thin;
+}
+
+.messages {
+  max-width: 750px;
+  margin: auto;
+}
+
+.message {
+  padding: 16px 0 24px;
+}
+
+.message .speaker {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.message .content {
+  max-width: 72ch;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.message.pending .content:empty::after {
+  content: "Thinking…";
+  color: var(--muted);
+}
+
+.message.interrupted .content:empty::after {
+  content: "Interrupted";
+  color: var(--crashed);
+}
+
+/* Tool calls sit inline in the assistant's turn, between its text segments. */
+
+.message[data-continued] {
+  padding-top: 0;
+}
+
+.message:has(+ .message[data-continued]) {
+  padding-bottom: 8px;
+}
+
+.message > :is(.content, .tool-call) + :is(.content, .tool-call) {
+  margin-top: 8px;
+}
+
+.tool-call {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 72ch;
+  padding: 7px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tool-icon {
+  display: grid;
+  flex: 0 0 14px;
+  place-items: center;
+  height: 14px;
+}
+
+.tool-call[data-status="done"] .tool-icon { color: var(--connected); }
+.tool-call[data-status="error"] .tool-icon,
+.tool-call[data-status="interrupted"] .tool-icon { color: var(--crashed); }
+
+.tool-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ccc;
+  border-top-color: var(--text);
+  border-radius: 50%;
+  animation: tool-spin 700ms linear infinite;
+}
+
+@keyframes tool-spin {
+  to { transform: rotate(360deg); }
+}
+
+.tool-name {
+  flex-shrink: 0;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+}
+
+.tool-summary {
+  min-width: 0;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-status {
+  flex-shrink: 0;
+  margin-left: auto;
+  font-size: 12px;
+}
+
+/* Message composer */
+
+.composer-area {
+  align-self: center;
+  width: 100%;
+  max-width: 850px;
+  padding: 12px 40px 24px;
+}
+
+.composer {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+/* Focus follows the rounded composer, rather than the textarea inside it. */
+.composer:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+  line-height: 1.6;
+  resize: none;
+}
+
+textarea:focus-visible {
+  outline: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+}
+
+.send {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Each pane responds to its own width, including nested splits. */
+
+@container (max-width: 860px) {
+  .topbar {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .brand { font-size: 15px; }
+  .brand-mark { width: 30px; height: 30px; }
+  .brand-group { gap: 6px; }
+
+  .room-controls {
+    order: 1;
+    flex: 1 0 100%;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .scroll-area { padding: 12px 24px; }
+  .composer-area { padding: 10px 16px 16px; }
+  input, textarea { font-size: 16px; }
+}
+
+@container (max-width: 410px) {
+  .topbar { gap: 10px; padding: 12px; }
+  .brand { font-size: 13px; }
+  .brand-mark { width: 26px; height: 26px; }
+  .brand-group { gap: 5px; }
+  .pane-tools { gap: 0; }
+  .pane-tools button { padding: 8px; }
+  .pane-tools svg { width: 16px; height: 16px; }
+  .connection { flex-basis: 6px; width: 6px; height: 6px; }
+  .composer { gap: 8px; padding: 12px; }
+  .send { gap: 6px; padding: 10px 12px; }
+}
+
+.shortcut-hint {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.shortcut-hint span { white-space: nowrap; }
+kbd { margin-right: 4px; font: inherit; font-weight: 600; }
+
+/* The armadillo only scurries while a real connection is pending. */
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--background);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms;
+}
+
+.pane[data-state="connecting"] .loading,
+.pane[data-state="crashed"] .loading { opacity: 1; visibility: visible; }
+.loading p { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+.loading-copy[data-copy="crashed"] { display: none; }
+.pane[data-state="crashed"] .loading-copy[data-copy="connecting"] { display: none; }
+.pane[data-state="crashed"] .loading-copy[data-copy="crashed"] { display: block; }
+.loading-mascot { position: relative; width: 128px; height: 128px; }
+.loading-mascot img { position: relative; z-index: 1; object-fit: contain; }
+.loading-ground {
+  position: absolute;
+  bottom: 12px;
+  left: 28px;
+  width: 72px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.pane[data-state="connecting"] .loading-mascot img {
+  animation: armadillo-scurrying 800ms ease-in-out infinite;
+}
+.pane[data-state="connecting"] .loading-ground {
+  animation: ground-shift 800ms ease-in-out infinite;
+}
+.pane[data-state="crashed"] .loading-mascot img {
+  transform: rotate(180deg);
+}
+
+@keyframes armadillo-scurrying {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-6px) rotate(3deg); }
+}
+@keyframes ground-shift {
+  0%, 100% { transform: scaleX(1); opacity: 1; }
+  50% { transform: scaleX(.7); opacity: .5; }
+}
+
+/* Sandbox preview */
+
+.preview {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 320px;
+  background: var(--background);
+}
+
+.preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 16px 12px 24px;
+}
+
+.preview .connection[data-state="ready"] { background: var(--connected); }
+.preview .connection[data-state="idle"],
+.preview .connection[data-state="stopped"] { background: #bbb; }
+.preview .connection[data-state="error"] { background: var(--crashed); }
+
+.address {
+  flex: 1;
+  min-width: 0;
+}
+
+.address input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--surface);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  text-overflow: ellipsis;
+}
+
+.preview .pane-tools {
+  margin-left: 0;
+}
+
+.icon-link {
+  display: grid;
+  place-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  color: var(--muted);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.icon-link:hover {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.icon-link[aria-disabled] {
+  opacity: .4;
+  pointer-events: none;
+}
+
+.preview .pane-tools button:disabled {
+  background: transparent;
+  opacity: .4;
+}
+
+.preview-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0 16px 16px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.preview-body iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.preview-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--surface);
+  text-align: center;
+  transition: opacity 180ms ease, visibility 180ms;
+}
+
+.preview[data-state="ready"]:not([data-loading]) .preview-empty {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.preview-empty p {
+  display: none;
+  max-width: 36ch;
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.preview[data-state="connecting"] [data-copy="connecting"],
+.preview[data-state="idle"] [data-copy="idle"],
+.preview[data-state="starting"] [data-copy="starting"],
+.preview[data-state="ready"] [data-copy="ready"],
+.preview[data-state="stopped"] [data-copy="stopped"],
+.preview[data-state="error"] [data-copy="error"] { display: block; }
+
+.preview-empty .loading-mascot { width: 96px; height: 96px; }
+.preview-empty .loading-ground { bottom: 9px; left: 21px; width: 54px; }
+
+.preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-mascot img {
+  animation: armadillo-scurrying 800ms ease-in-out infinite;
+}
+.preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-ground {
+  animation: ground-shift 800ms ease-in-out infinite;
+}
+.preview[data-state="error"] .loading-mascot img { transform: rotate(180deg); }
+.preview:is([data-state="idle"], [data-state="stopped"]) .loading-mascot { opacity: .5; filter: grayscale(1); }
+
+/* Stack the preview under the chat on narrow screens. */
+@media (max-width: 900px) {
+  .app { flex-direction: column; height: auto; min-height: 100dvh; }
+  .panes { flex: none; height: 70dvh; min-width: 0; }
+  .divider { display: none; }
+  .preview { flex: none; height: 80dvh; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pane[data-state="connecting"] .loading-mascot img,
+  .pane[data-state="connecting"] .loading-ground,
+  .preview .loading-mascot img,
+  .preview .loading-ground,
+  .tool-spinner { animation: none; }
+  .loading { transition-duration: 100ms; }
+}
