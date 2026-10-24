@@ -232,20 +232,21 @@ async function runExample(example: Example): Promise<void> {
         return
     }
 
-    const client = start("bun", clientDir, ["run", "start"])
+    const client = start("bun", clientDir, ["run", "start"], "inherit")
     children.push(client)
     const clientCode = await exited(client)
     await stop("SIGTERM")
     process.exitCode = clientCode ?? 1
 }
 
-function start(command: string, cwd: string, args: readonly string[]): ChildProcess {
+function start(command: string, cwd: string, args: readonly string[], stdin: "pipe" | "inherit" = "pipe"): ChildProcess {
     const child = spawn(command, [...args], {
         cwd,
         detached: true,
         // Inherit the terminal so actor and client output stays line-buffered.
         // A pipe would block-buffer the dev server until it exits.
-        stdio: ["pipe", "inherit", "inherit"],
+        // Interactive clients also need the terminal's stdin.
+        stdio: [stdin, "inherit", "inherit"],
     })
     child.on("error", error => {
         console.error(error.message)

@@ -7,7 +7,7 @@ bun install
 terse actor dev
 ```
 
-Define your actors in `src/actors.ts`. The starter contains a counter with persisted state and `read()` and `increment()` methods. Each counter ID has its own saved value.
+Define your actors in `src/actors.ts`. The starter contains a counter with persisted state and `read()`, `increment()`, and `decrement()` methods. Each counter ID has its own saved value. WebSocket clients can send `{ "type": "increment" }` or `{ "type": "decrement" }`, and every connected client receives the new value as an `@Emittable` state update.
 
 `terse actor dev` watches your actor source and stores local state in `.durable-actors/`. It defaults to project ID `local`; choose another with `terse actor dev --project-id my-project`.
 
