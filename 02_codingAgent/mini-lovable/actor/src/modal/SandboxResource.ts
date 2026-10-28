@@ -24,8 +24,8 @@ export class ModalSandbox implements ActorResource {
 
     constructor(private readonly db: ActorDatabase) {
         this.modal = new ModalClient({
-            tokenId: process.env.MODAL_TOKEN_ID,
-            tokenSecret: process.env.MODAL_TOKEN_SECRET,
+            tokenId: process.env.SANDBOX_MODAL_TOKEN_ID,
+            tokenSecret: process.env.SANDBOX_MODAL_TOKEN_SECRET,
         });
 
         this.resourceKV = new ResourceKV(this.db, "modal_sandbox")

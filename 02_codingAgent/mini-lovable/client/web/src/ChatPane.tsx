@@ -79,7 +79,7 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
     >
       <header className="topbar">
         <div className="brand-group">
-          <img className="brand-mark" src="/armadillo.png" width="38" height="38" alt="Armadillo" />
+          <img className="brand-mark" src="/terse-armadillo-light.svg" width="38" height="38" alt="Terse armadillo" />
           <a className="brand" href="/">Durable Actors Chat</a>
           <span className="connection" data-state={connection} role="status" title={connectionLabels[connection]}>
             <span className="sr-only">{connectionLabels[connection]}</span>
@@ -145,7 +145,7 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
           <div className="shortcut-hint"><span><kbd>⌘ N</kbd> split down</span><span><kbd>⌘ M</kbd> split right</span></div>
         </div>
         <div className="loading" role="status">
-          <div className="loading-mascot"><img src="/armadillo.png" width="128" height="128" alt="" /><span className="loading-ground" /></div>
+          <div className="loading-mascot"><img src="/terse-armadillo-light.svg" width="128" height="128" alt="" /><span className="loading-ground" /></div>
           <p className="loading-copy" data-copy="connecting">Getting your chat ready<span className="loading-dots" aria-hidden="true">…</span></p>
           <p className="loading-copy" data-copy="crashed">The actor crashed</p>
         </div>
