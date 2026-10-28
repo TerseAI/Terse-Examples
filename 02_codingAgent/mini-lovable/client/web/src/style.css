@@ -522,7 +522,6 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 .pane[data-state="crashed"] .loading-copy[data-copy="connecting"] { display: none; }
 .pane[data-state="crashed"] .loading-copy[data-copy="crashed"] { display: block; }
 .loading-mascot {
-  --roll: 32px;
   position: relative;
   width: 128px;
   height: 128px;
@@ -539,15 +538,14 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 }
 
 .pane[data-state="connecting"] .loading-mascot img {
-  animation: armadillo-rolling 1.4s ease-in-out infinite alternate;
+  animation: armadillo-rolling 1.4s linear infinite;
 }
 .pane[data-state="crashed"] .loading-mascot img {
   transform: rotate(180deg);
 }
 
 @keyframes armadillo-rolling {
-  from { transform: translateX(calc(-1 * var(--roll))) rotate(-1turn); }
-  to { transform: translateX(var(--roll)) rotate(1turn); }
+  to { transform: rotate(1turn); }
 }
 
 /* Sandbox preview */
@@ -669,11 +667,11 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 .preview[data-state="stopped"] [data-copy="stopped"],
 .preview[data-state="error"] [data-copy="error"] { display: block; }
 
-.preview-empty .loading-mascot { --roll: 24px; width: 96px; height: 96px; }
+.preview-empty .loading-mascot { width: 96px; height: 96px; }
 .preview-empty .loading-ground { bottom: 9px; left: 21px; width: 54px; }
 
 .preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-mascot img {
-  animation: armadillo-rolling 1.4s ease-in-out infinite alternate;
+  animation: armadillo-rolling 1.4s linear infinite;
 }
 .preview[data-state="error"] .loading-mascot img { transform: rotate(180deg); }
 .preview:is([data-state="idle"], [data-state="stopped"]) .loading-mascot { opacity: .5; filter: grayscale(1); }
