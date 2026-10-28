@@ -1,11 +1,4 @@
 import type { JsonValue } from "./json.js";
-export declare class HttpActorHostTransport implements ActorHostTransport {
-    private readonly fetchRequest;
-    constructor(fetchRequest?: typeof globalThis.fetch);
-    invoke(target: ActorHostTarget, invocation: ActorInvocation): Promise<ActorHostReply>;
-    publish(target: ActorHostTarget, actor: ActorAddress, effects: readonly unknown[]): Promise<void>;
-    private post;
-}
 export declare function parseActorHostReply(reply: unknown): ActorHostReply;
 export declare function connectionRefused(error: unknown, ancestors?: Set<unknown>): boolean;
 export declare function responseDocument(response: Response): Promise<unknown>;
@@ -14,12 +7,6 @@ export interface ActorAddress {
     readonly projectId: string;
     readonly actorName: string;
     readonly actorId: string;
-}
-export interface ActorHostTarget {
-    readonly route: string;
-    readonly token: string;
-    readonly ownerEpoch: number;
-    readonly expiresAtMs: number;
 }
 export interface ActorInvocation extends ActorAddress {
     readonly requestId: string;
@@ -48,8 +35,4 @@ export type ActorHostReply = ({
 }) & {
     readonly metadata?: ActorResponseMetadata;
 };
-export interface ActorHostTransport {
-    invoke(target: ActorHostTarget, invocation: ActorInvocation): Promise<ActorHostReply>;
-    publish(target: ActorHostTarget, actor: ActorAddress, effects: readonly unknown[]): Promise<void>;
-}
 export {};
