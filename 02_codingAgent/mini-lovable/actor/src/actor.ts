@@ -52,7 +52,6 @@ export class PiAgent extends Actor<null, string, Outgoing> {
     }
 }
 
-// MARK: Types
 type Outgoing =
 | { type: "view"; view: Unchecked<ConversationView> }
 | { type: "ops"; ops: Unchecked<readonly Op[]> }

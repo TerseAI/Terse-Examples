@@ -96,9 +96,6 @@ export class ModalSandbox implements ActorResource {
         // this is assumed to have the correct code on it already
         return this.modal.images.fromId(imageId)
     }
-
-    // MARK: Lifecycle hooks
-
     // Check if sandboxId in resourceKV is still active, else create a new sandbox
     async onResume(): Promise<void> {
         console.log("Resume hook fired")
