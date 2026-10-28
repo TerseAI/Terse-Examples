@@ -3,12 +3,12 @@ import { createModels } from "@earendil-works/pi-ai"
 import { openaiProvider } from "@earendil-works/pi-ai/providers/openai"
 import { ConversationView, createRegistry } from "@earendil-works/pi-durable"
 import { BACKGROUND_CONTEXT } from "@earendil-works/chord/context";
-import { Actor, Compute, Resource, Interleave, ActorSocket, Unchecked, unchecked } from "durable-actors"
+import { Actor, Resource, Interleave, ActorSocket, Unchecked, unchecked } from "durable-actors"
 import { CodingTools } from "@earendil-works/pi-durable/tools"
 import { ModalSandbox } from "./modal/SandboxResource";
 import { Op } from "@earendil-works/chord/delta";
 
-@Compute({ idleTimeoutMs: 300000 })
+
 export class PiAgent extends Actor<null, string, Outgoing> {
     @Resource private sandbox = new ModalSandbox(this.db)
     @Resource private readonly agent = new DurablePiAgent(this.db, {
