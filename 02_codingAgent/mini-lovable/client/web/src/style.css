@@ -499,7 +499,7 @@ textarea::placeholder {
 .shortcut-hint span { white-space: nowrap; }
 kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 
-/* The armadillo only scurries while a real connection is pending. */
+/* The armadillo only rolls around while a real connection is pending. */
 .loading {
   position: absolute;
   inset: 0;
@@ -521,7 +521,12 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 .loading-copy[data-copy="crashed"] { display: none; }
 .pane[data-state="crashed"] .loading-copy[data-copy="connecting"] { display: none; }
 .pane[data-state="crashed"] .loading-copy[data-copy="crashed"] { display: block; }
-.loading-mascot { position: relative; width: 128px; height: 128px; }
+.loading-mascot {
+  --roll: 32px;
+  position: relative;
+  width: 128px;
+  height: 128px;
+}
 .loading-mascot img { position: relative; z-index: 1; object-fit: contain; }
 .loading-ground {
   position: absolute;
@@ -534,22 +539,15 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 }
 
 .pane[data-state="connecting"] .loading-mascot img {
-  animation: armadillo-scurrying 800ms ease-in-out infinite;
-}
-.pane[data-state="connecting"] .loading-ground {
-  animation: ground-shift 800ms ease-in-out infinite;
+  animation: armadillo-rolling 1.4s ease-in-out infinite alternate;
 }
 .pane[data-state="crashed"] .loading-mascot img {
   transform: rotate(180deg);
 }
 
-@keyframes armadillo-scurrying {
-  0%, 100% { transform: translateY(0) rotate(-3deg); }
-  50% { transform: translateY(-6px) rotate(3deg); }
-}
-@keyframes ground-shift {
-  0%, 100% { transform: scaleX(1); opacity: 1; }
-  50% { transform: scaleX(.7); opacity: .5; }
+@keyframes armadillo-rolling {
+  from { transform: translateX(calc(-1 * var(--roll))) rotate(-1turn); }
+  to { transform: translateX(var(--roll)) rotate(1turn); }
 }
 
 /* Sandbox preview */
@@ -671,14 +669,11 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 .preview[data-state="stopped"] [data-copy="stopped"],
 .preview[data-state="error"] [data-copy="error"] { display: block; }
 
-.preview-empty .loading-mascot { width: 96px; height: 96px; }
+.preview-empty .loading-mascot { --roll: 24px; width: 96px; height: 96px; }
 .preview-empty .loading-ground { bottom: 9px; left: 21px; width: 54px; }
 
 .preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-mascot img {
-  animation: armadillo-scurrying 800ms ease-in-out infinite;
-}
-.preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-ground {
-  animation: ground-shift 800ms ease-in-out infinite;
+  animation: armadillo-rolling 1.4s ease-in-out infinite alternate;
 }
 .preview[data-state="error"] .loading-mascot img { transform: rotate(180deg); }
 .preview:is([data-state="idle"], [data-state="stopped"]) .loading-mascot { opacity: .5; filter: grayscale(1); }
@@ -693,9 +688,7 @@ kbd { margin-right: 4px; font: inherit; font-weight: 600; }
 
 @media (prefers-reduced-motion: reduce) {
   .pane[data-state="connecting"] .loading-mascot img,
-  .pane[data-state="connecting"] .loading-ground,
-  .preview .loading-mascot img,
-  .preview .loading-ground,
+  .preview:is([data-state="connecting"], [data-state="starting"], [data-loading]) .loading-mascot img,
   .tool-spinner { animation: none; }
   .loading { transition-duration: 100ms; }
 }
