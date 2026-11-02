@@ -80,7 +80,7 @@ export function PreviewPane({ session }: { session: ChatSession }) {
           />
         )}
         <div className="preview-empty" role="status">
-          <div className="loading-mascot"><img src="/armadillo.png" width="96" height="96" alt="" /><span className="loading-ground" /></div>
+          <div className="loading-mascot"><img src="/terse-armadillo-light.svg" width="96" height="96" alt="" /><span className="loading-ground" /></div>
           <p data-copy="connecting">Connecting to the agent<span aria-hidden="true">…</span></p>
           <p data-copy="idle">This chat has no sandbox yet. Its preview will show up here.</p>
           <p data-copy="starting">Starting the sandbox<span aria-hidden="true">…</span></p>

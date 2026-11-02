@@ -8,6 +8,7 @@ import { CodingTools } from "@earendil-works/pi-durable/tools"
 import { ModalSandbox } from "./modal/SandboxResource";
 import { Op } from "@earendil-works/chord/delta";
 
+
 export class PiAgent extends Actor<null, string, Outgoing> {
     @Resource private sandbox = new ModalSandbox(this.db)
     @Resource private readonly agent = new DurablePiAgent(this.db, {
@@ -51,7 +52,6 @@ export class PiAgent extends Actor<null, string, Outgoing> {
     }
 }
 
-// MARK: Types
 type Outgoing =
 | { type: "view"; view: Unchecked<ConversationView> }
 | { type: "ops"; ops: Unchecked<readonly Op[]> }

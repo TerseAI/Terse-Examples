@@ -24,8 +24,8 @@ export class ModalSandbox implements ActorResource {
 
     constructor(private readonly db: ActorDatabase) {
         this.modal = new ModalClient({
-            tokenId: process.env.MODAL_TOKEN_ID,
-            tokenSecret: process.env.MODAL_TOKEN_SECRET,
+            tokenId: process.env.SANDBOX_MODAL_TOKEN_ID,
+            tokenSecret: process.env.SANDBOX_MODAL_TOKEN_SECRET,
         });
 
         this.resourceKV = new ResourceKV(this.db, "modal_sandbox")
@@ -96,9 +96,6 @@ export class ModalSandbox implements ActorResource {
         // this is assumed to have the correct code on it already
         return this.modal.images.fromId(imageId)
     }
-
-    // MARK: Lifecycle hooks
-
     // Check if sandboxId in resourceKV is still active, else create a new sandbox
     async onResume(): Promise<void> {
         console.log("Resume hook fired")

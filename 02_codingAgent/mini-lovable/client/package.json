@@ -10,7 +10,7 @@
   },
   "packageManager": "bun@1.4.2",
   "scripts": {
-    "start": "bun scripts/dev.ts",
+    "start": "bun --no-env-file scripts/dev.ts",
     "postinstall": "bun install --cwd web",
     "dev:backend": "bun --watch src/backend.ts",
     "dev:web": "bun run --cwd web dev",

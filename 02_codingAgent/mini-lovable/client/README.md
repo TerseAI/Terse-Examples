@@ -1,109 +1,124 @@
-# Durable Actors + Mastra
+# Mini Lovable
 
-A multiplayer AI chat demo built with Elysia, Mastra, and Durable Actors.
+A tiny Lovable-style app builder built with Durable Actors, Pi, and Modal.
 
-A Vite + React app in `web/` talks to an Elysia API, which grants WebSocket access
-and forwards prompts. Each chat has one durable actor
-that owns its conversation history, connected clients, and Mastra agent turns.
-Replies stream directly from the actor to everyone in the room.
+You chat with a coding agent on the left and watch the app it builds on the right.
+Each chat is one durable `PiAgent` actor that owns its conversation and a Modal sandbox.
+The sandbox runs a Vite dev server that the agent edits live, and the preview pane
+shows it through a Modal tunnel.
+
+## Requirements
+
+- [Bun 1.4.2+](https://bun.sh)
+- The `terse` CLI, logged in with access to the project in `../actor/terse.config.json`
+- A [Modal](https://modal.com) account, either in `~/.modal.toml` (`modal token new`) or
+  as `SANDBOX_MODAL_TOKEN_ID` and `SANDBOX_MODAL_TOKEN_SECRET`
+- An OpenAI API key that can use the model set in `../actor/src/actor.ts`
+
+## Setup
+
+From the repo root:
+
+```sh
+bun install
+cd 02_codingAgent/mini-lovable/actor
+bun install
+cp .env.example .env    # set OPENAI_API_KEY (and Modal tokens if not using ~/.modal.toml)
+cd ../client
+bun install             # also installs web/
+cp .env.example .env    # PORT for the Elysia API, defaults to 8000
+```
 
 ## Run
 
-Requires [Bun 1.4.2+](https://bun.sh) and your own OpenAI API key.
+From the repo root:
 
 ```sh
-bun install --frozen-lockfile
-bun install --frozen-lockfile --cwd web
-cp .env.example .env
+bun run example mini-lovable
 ```
 
-Set `OPENAI_API_KEY` in `.env`. Mastra uses `OPENAI_MODEL`, defaulting to
-`gpt-5-mini`. Every reply calls OpenAI.
+This starts `terse actor dev` in `actor/`, waits for port 7100, then runs `bun run start`
+here, which starts the Elysia API and the Vite app. Open [localhost:5173](http://localhost:5173).
 
-Start the actors:
+To run the pieces yourself, use two terminals:
 
 ```sh
-bun run dev:actors
+cd 02_codingAgent/mini-lovable/actor && terse actor dev
+cd 02_codingAgent/mini-lovable/client && bun run start
 ```
 
-Wait for `Ready`, then start Elysia and the Vite app in another terminal:
+Only one example can run at a time, because `terse actor dev` always uses port 7100.
 
-```sh
-bun run dev
-```
+In dev, edits to `web/src` hot-reload and edits to `src/` restart the API. Saving `.env`
+restarts both, and the open page reloads itself, so its chats reconnect with the new settings.
 
-Open [localhost:5173](http://localhost:5173) to start an independent chat. Open the
-same chat ID in two browser tabs to see shared replies.
-Reload after a reply finishes to restore the saved history.
-Use the reset icon beside **Open** to clear the current chat for everyone in the room.
+## Deploy
 
-Press **⌘N** to split the active pane above/below, or **⌘M** to split it side by
-side. The header buttons do the same thing (and work when a browser reserves a
-shortcut). Click a pane to focus it; use **×** to close it. Each new pane starts
-an independent chat. Enter the same chat ID in multiple panes to share a room.
+The client talks to the local actor server unless `TERSE_ACTOR_URL` is set. To use
+actors deployed to Terse Cloud:
 
-Both processes read `.env`. The first actor start downloads the Durable Actors
-runtime. Actor state is stored locally in `.durable-actors/` and survives restarts.
-Use `PORT` to change the Elysia port; Vite proxies `/api` to it. To change the actor port, set
-`DURABLE_ACTORS_PORT` and update `DURABLE_ACTORS_CONTROL_PLANE_URL` to match.
+1. In `../actor/.env`, uncomment and fill in `SANDBOX_MODAL_TOKEN_ID` and
+   `SANDBOX_MODAL_TOKEN_SECRET`. Deployed actors can't read `~/.modal.toml`, and the
+   runtime reserves the plain `MODAL_TOKEN_*` names.
+2. From `../actor`, run `terse deploy`. Let it upload the secrets from `.env` when it asks
+   (or run `terse secrets import .env` first).
+3. Copy the `TERSE_ACTOR_URL` it prints into this folder's `.env`, and set `TERSE_API_KEY`
+   to a key from the link it prints.
+4. Run `bun run start` here. Don't use `bun run example`, which starts the local server.
+
+Remove those two lines from `.env` to go back to local actors.
+
+## Using it
+
+Opening a new chat starts its Modal sandbox, which takes a little while the first time.
+The preview pane shows **Live** once the sandbox's dev server answers. Ask the agent to
+build something and its edits hot-reload in the preview.
+
+- Open `?chat=<id>` or type an ID into the chat header to share a chat between tabs.
+- **⌘N** and **⌘M** split the chat pane; the preview follows the active pane.
+- The reset button clears the conversation for everyone in that chat.
+- Paste any URL into the preview bar to point the preview elsewhere.
 
 ## Architecture
 
 ```text
-Browser                 Elysia                  ChatHistory actor          OpenAI
-   |                       |                     (one per chat ID)           |
-   |-- request socket ---->|                            |                    |
-   |                       |-- prepare WebSocket ------>|                    |
-   |                       |<-- connection grant -------|                    |
-   |<-- WebSocket URL -----|                            |                    |
-   |                                                    |                    |
-   |================ direct WebSocket =================>|                    |
-   |<---------------- saved history --------------------|                    |
-   |                                                    |                    |
-   |-- POST prompt ------->|                            |                    |
-   |                       |-- prompt() --------------->|                    |
-   |<---------------- start event ----------------------|                    |
-   |                                                    |-- Mastra stream -->|
-   |                                                    |   history + prompt |
-   |<---------------- text deltas ----------------------|<-- streamed text --|
-   |<---------------- done event -----------------------|                    |
-   |                                                    |                    |
-   |                                             Persist conversation        |
-   |                                             when handler returns        |
+Browser                 Elysia                  PiAgent actor               Modal sandbox
+   |                       |                    (one per chat ID)            (node:22 + Vite)
+   |-- request socket ---->|                            |                           |
+   |                       |-- prepareWebsocket ------->|                           |
+   |<-- WebSocket URL -----|                            |-- create or reattach ---->|
+   |================ direct WebSocket =================>|                           |
+   |<---------------- conversation view ----------------|                           |
+   |<---------------- preview URL ----------------------|<-- tunnel on port 3000 ---|
+   |                                                    |                           |
+   |-- POST prompt ------->|-- prompt() --------------->|-- Pi agent (OpenAI) ----->|
+   |<---------------- view ops (streamed) --------------|   reads, edits, runs      |
+   |<---------------- final view -----------------------|                           |
 ```
 
-- [Elysia backend](src/backend.ts): validates chat IDs, returns connection grants
-  from `POST /api/chat/:chatId/socket`, and forwards prompts from
-  `POST /api/chat/:chatId/prompt` to the actor.
-- [Chat actor](src/actors.ts): sends history on connection, processes one turn at a
-  time, and broadcasts `start`, `delta`, and `done` events to the room. Its `reset()`
-  method clears saved messages and broadcasts an empty history.
-- [Mastra agent](src/actors.ts): streams concise, helpful responses with the saved
-  messages. Durable Actors owns persistence, so no Mastra memory store is needed.
-- [Chat session](web/src/chatSession.ts): connects directly to the actor, streams
-  text, sends prompts, and switches rooms. Lives outside React so panes keep their
-  socket when the layout changes.
-- [Chat pane](web/src/ChatPane.tsx) and [pane layout](web/src/App.tsx): render a chat
-  and split the active pane; handle shortcuts.
+- [Actor](../actor/src/actor.ts): the `PiAgent` actor. It sets the model, the agent
+  instructions, and the coding tools, and broadcasts conversation changes to every
+  connected socket.
+- [Durable Pi agent](../actor/src/pi/DurablePiAgent.ts): runs the Pi harness and stores
+  its state in the actor's database, so conversations survive restarts.
+- [Modal sandbox](../actor/src/modal/SandboxResource.ts): creates a sandbox per actor,
+  saves its ID, and reattaches to it after a restart if it is still running. Sandboxes
+  time out after an hour.
+- [Elysia backend](src/backend.ts): grants WebSocket access and forwards `prompt` and
+  `reset` calls to the actor.
+- [Chat session](web/src/chatSession.ts): one actor socket per pane, kept outside React.
+- [Chat pane](web/src/ChatPane.tsx), [preview pane](web/src/PreviewPane.tsx), and
+  [layout](web/src/App.tsx): the UI.
 
-After streaming, the actor saves both the user message and reply. New connections
-wait for an active turn to finish before receiving history; streams are not resumed
-after a process restart.
-
-Rooms are shared by ID and have no authentication. Add authentication and chat
-ownership checks to the connection-grant route before using private conversations.
+Chats are shared by ID and have no authentication. Add auth to the socket grant route
+before using this for anything private.
 
 ## Development
 
 ```sh
-bun run generate  # Regenerate typed actor clients after changing the contract
-bun run check     # TypeScript (backend)
+bun run generate         # regenerate generated/ after changing the actor's methods
+bun run check            # TypeScript (backend)
 bun run --cwd web check  # TypeScript (web app)
 ```
 
-Commit `generated/` after regeneration; do not edit it by hand. Commit both
-`bun.lock` files when updating dependencies. `bun run start` runs the Elysia API
-without file watching; `bun run --cwd web build` builds the web app into `web/dist`.
-
-Built with [Durable Actors](https://github.com/TerseAI/durable-actors),
-[Elysia](https://elysiajs.com), and [Mastra](https://mastra.ai/docs/agents/overview).
+Commit `generated/` after regenerating, and don't edit it by hand.
