@@ -22,16 +22,14 @@ export class PiAgent extends Actor<null, string, Outgoing> {
     }, this.alarm)
 
     async prompt(text: string): Promise<void> {
+        await this.streamToSockets()
         await this.agent.prompt(text)
     }
 
     async onAlarm(): Promise<void> {
         await this.agent.onAlarm()
-        // The gateway can retain sockets across a host crash, without another onConnect.
-        if (await this.getConnectionCount() > 0) {
-            const view = await this.watchConversation()
-            this.broadcast({ type: "view", view: unchecked(view) })
-        }
+        const view = await this.streamToSockets()
+        if (view) this.broadcast({ type: "view", view: unchecked(view) })
     }
 
     async reset() {
@@ -45,6 +43,11 @@ export class PiAgent extends Actor<null, string, Outgoing> {
         const view = await this.watchConversation()
         socket.send({ type: "view", view: unchecked(view) })
         socket.send({ status: "ready", url: await this.sandbox.previewUrl() })
+    }
+
+    private async streamToSockets(): Promise<ConversationView | undefined> {
+        if (await this.getConnectionCount() === 0) return undefined
+        return this.watchConversation()
     }
 
     private async watchConversation(): Promise<ConversationView> {

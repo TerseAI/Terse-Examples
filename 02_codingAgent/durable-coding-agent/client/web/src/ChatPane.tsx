@@ -21,7 +21,7 @@ const connectionLabels: Record<Connection, string> = {
 };
 
 export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onClose }: Props) {
-  const { chatId, connection, busy, view, draft } = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const { chatId, connection, busy, crashing, crashNotice, view, draft } = useSyncExternalStore(session.subscribe, session.getSnapshot);
   const [room, setRoom] = useState(chatId);
   const scrollArea = useRef<HTMLDivElement>(null);
   const followReply = useRef(true);
@@ -82,8 +82,10 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
     >
       <header className="topbar">
         <div className="brand-group">
-          <img className="brand-mark" src="/armadillo.png" width="38" height="38" alt="Armadillo" />
-          <a className="brand" href="/">Durable Actors Chat</a>
+          <a className="brand" href="/" aria-label="Durable Actors by Terse">
+            <img className="brand-lockup" src="/brand/durable-actors_primary-lockup_positive.svg" width="164" height="52" alt="" />
+            <img className="brand-mark" src="/brand/durable-actors_symbol_positive.svg" width="28" height="27" alt="" />
+          </a>
           <span className="connection" data-state={connection} role="status" title={connectionLabels[connection]}>
             <span className="sr-only">{connectionLabels[connection]}</span>
           </span>
@@ -113,10 +115,11 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
             className="crash"
             type="button"
             title="Crash this actor to test recovery"
-            disabled={!ready}
+            disabled={!ready || crashing}
+            aria-busy={crashing || undefined}
             onClick={() => void session.crashTheSucker()}
           >
-            Crash actor
+            {crashing ? "Crashing…" : "Crash actor"}
           </button>
         </form>
         <div className="pane-tools" role="group" aria-label="Pane controls">
@@ -132,6 +135,12 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
         </div>
       </header>
       <div className="workspace">
+        {crashNotice && (
+          <div key={crashNotice} className="crash-notice" role="status">
+            <strong>Actor crashed</strong>
+            <span>Sent process.exit(1) to the actor.</span>
+          </div>
+        )}
         <div ref={scrollArea} className="scroll-area" onScroll={onScroll}>
           <div className="messages" role="log" aria-label="Conversation" aria-live="polite" aria-relevant="additions">
             {view && <Transcript view={view} />}
@@ -157,7 +166,7 @@ export function ChatPane({ session, active, autoFocus, onActivate, onSplit, onCl
           <div className="shortcut-hint"><span><kbd>⌘ N</kbd> split down</span><span><kbd>⌘ M</kbd> split right</span></div>
         </div>
         <div className="loading" role="status">
-          <div className="loading-mascot"><img src="/armadillo.png" width="128" height="128" alt="" /><span className="loading-ground" /></div>
+          <div className="loading-mascot"><img src="/brand/durable-actors_symbol_positive.svg" width="112" height="109" alt="" /><span className="loading-ground" /></div>
           <p className="loading-copy" data-copy="connecting">Getting your chat ready<span className="loading-dots" aria-hidden="true">…</span></p>
           <p className="loading-copy" data-copy="crashed">The actor crashed</p>
         </div>

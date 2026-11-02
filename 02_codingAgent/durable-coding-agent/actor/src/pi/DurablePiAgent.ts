@@ -5,7 +5,7 @@ import type { ActorAlarm, ActorDatabase, ActorResource } from "durable-actors"
 import { ActorStorage } from "./storage"
 
 const context = BACKGROUND_CONTEXT
-const RECOVERY_ALARM_MS = 5_000
+const RECOVERY_ALARM_MS = 2_000
 
 export type DurablePiAgentOptions = HarnessOptions & {
     readonly agent: AgentChange & { readonly model: ModelRef }

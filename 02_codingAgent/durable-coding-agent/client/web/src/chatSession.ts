@@ -12,6 +12,10 @@ export type ChatSnapshot = {
   chatId: string;
   connection: Connection;
   busy: boolean;
+  /** A crash request is in flight. */
+  crashing: boolean;
+  /** Set briefly after a crash request, so the pane can show a notice. */
+  crashNotice?: number;
   view?: ConversationView;
   draft: string;
   /** Unset until the actor reports its sandbox. */
@@ -25,6 +29,8 @@ export function newChatId() {
   return `chat_${suffix}`;
 }
 
+const crashNoticeMs = 3200;
+
 const chatUrl = (chatId: string, action: string) => `/api/chat/${encodeURIComponent(chatId)}/${action}`;
 
 export class ChatSession {
@@ -35,9 +41,10 @@ export class ChatSession {
   private pendingPrompts = new Set<string>();
   private drafts = new Map<string, string>();
   private snapshot: ChatSnapshot;
+  private crashNoticeTimer?: ReturnType<typeof setTimeout>;
 
   constructor(chatId: string) {
-    this.snapshot = { chatId, connection: "connecting", busy: false, draft: "" };
+    this.snapshot = { chatId, connection: "connecting", busy: false, crashing: false, draft: "" };
   }
 
   subscribe = (listener: () => void) => {
@@ -102,13 +109,21 @@ export class ChatSession {
   }
 
   async crashTheSucker() {
+    if (this.snapshot.crashing) return;
+    const chatId = this.snapshot.chatId;
+    this.update({ crashing: true });
     try {
-      const response = await fetch(chatUrl(this.snapshot.chatId, "crash"), { method: "POST" });
-      if (!response.ok) throw new Error(`Crash request failed: ${response.status}`);
-    } catch (error) {
-      // The actor may exit before the request returns; the socket reports its state.
-      console.error(error);
+      await fetch(chatUrl(chatId, "crash"), { method: "POST" });
+    } catch {
+      // The actor exits mid-call, so a failed request is the expected outcome.
     }
+    if (this.snapshot.chatId !== chatId) {
+      this.update({ crashing: false });
+      return;
+    }
+    clearTimeout(this.crashNoticeTimer);
+    this.update({ crashing: false, crashNotice: Date.now() });
+    this.crashNoticeTimer = setTimeout(() => this.update({ crashNotice: undefined }), crashNoticeMs);
   }
 
   close() {
