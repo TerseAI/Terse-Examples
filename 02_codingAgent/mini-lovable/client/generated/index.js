@@ -24,7 +24,9 @@ export const actors = {
                 actorId,
                 [
                     { name: "prompt", result: "value" },
-                    { name: "reset", result: "void" }
+                    { name: "reset", result: "void" },
+                    { name: "submit", result: "void" },
+                    { name: "view", result: "value" }
                 ],
                 transport
             )

@@ -59,6 +59,14 @@ export declare namespace actors {
                 Args: Parameters<Stub["reset"]>
                 Result: Awaited<ReturnType<Stub["reset"]>>
             }
+            ["submit"]: {
+                Args: Parameters<Stub["submit"]>
+                Result: Awaited<ReturnType<Stub["submit"]>>
+            }
+            ["view"]: {
+                Args: Parameters<Stub["view"]>
+                Result: Awaited<ReturnType<Stub["view"]>>
+            }
         }
         interface Methods extends $MethodTypes {}
         /**
@@ -75,6 +83,14 @@ export declare namespace actors {
             namespace reset {
                 type Args = $MethodTypes["reset"]["Args"]
                 type Result = $MethodTypes["reset"]["Result"]
+            }
+            namespace submit {
+                type Args = $MethodTypes["submit"]["Args"]
+                type Result = $MethodTypes["submit"]["Result"]
+            }
+            namespace view {
+                type Args = $MethodTypes["view"]["Args"]
+                type Result = $MethodTypes["view"]["Result"]
             }
         }
     }

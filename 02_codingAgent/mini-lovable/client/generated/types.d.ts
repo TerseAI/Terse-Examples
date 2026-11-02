@@ -10,6 +10,8 @@ interface $PiAgentContract {
     Methods: {
         prompt(text: string): Promise<string>
         reset(): Promise<void>
+        submit(text: string): Promise<void>
+        view(): Promise<unknown>
     }
 }
 type Outgoing =
