@@ -2,6 +2,8 @@ import type { Context } from "@earendil-works/chord"
 import { MemoryStorage, type Seq, type StorageWrite } from "@earendil-works/pi-durable"
 import type { ActorDatabase } from "durable-actors"
 
+const start = Date.now(); // top of the module, outside the class
+
 export class ActorStorage extends MemoryStorage {
     constructor(private readonly database: ActorDatabase) {
         super()
@@ -12,6 +14,7 @@ export class ActorStorage extends MemoryStorage {
     }
 
     override async commit(writes: readonly StorageWrite[], _context: Context): Promise<Seq> {
+        console.log(`[+${Date.now() - start}ms] committing durable state in pi. Count: ${writes.length}`);
         const prepared = this.prepareCommit(writes)
         this.database.exec("INSERT INTO pi_commits (seq, writes) VALUES (?, ?)", prepared.seq, JSON.stringify(prepared.writes))
         return prepared.apply()
