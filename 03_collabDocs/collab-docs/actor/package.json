@@ -1,0 +1,19 @@
+{
+  "name": "collab-docs",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.4",
+    "terse-sdk": "0.14.9",
+    "yjs": "^13.6.33"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^5.0.0"
+  }
+}
