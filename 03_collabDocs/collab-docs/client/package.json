@@ -10,8 +10,7 @@
     "dev:backend": "bun --watch src/backend.ts",
     "dev:web": "bun run --cwd web dev",
     "generate": "terse actor generate",
-    "check": "tsc --noEmit && bun run --cwd web check",
-    "e2e": "bun e2e/collab.e2e.ts"
+    "check": "tsc --noEmit && bun run --cwd web check"
   },
   "dependencies": {
     "elysia": "1.4.30"

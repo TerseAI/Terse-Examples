@@ -5,54 +5,7 @@ import { drizzle, migrate } from "terse-sdk/drizzle"
 import migrations from "./migrations/migrations.js"
 import { docs, updates } from "./schema.js"
 
-/** The single DocIndex actor that lists every document. */
-export const INDEX_ID = "main"
-export const UNTITLED = "Untitled document"
 
-/** How long after an edit the document reports its title and preview to the index. */
-const INDEX_DELAY_MS = 1500
-/** Merge stored Yjs updates into one row once there are more than this many. */
-const COMPACT_AFTER = 200
-
-export type DocSummary = {
-    id: string
-    title: string
-    preview: string
-    createdAt: number
-    updatedAt: number
-}
-
-/**
- * Connection metadata. The backend sets who is connecting; the actor records the
- * browser's Yjs awareness (cursor) state so it can replay it to people who join later.
- */
-export type Member = {
-    userId: string
-    name: string
-    color: string
-    clientId?: number
-    awareness?: string
-}
-
-export type Collaborator = { userId: string; name: string; color: string }
-
-/** Browser -> Document. Binary Yjs updates travel as base64. */
-export type DocIncoming =
-    | { type: "update"; update: string }
-    | { type: "awareness"; clientId: number; update: string }
-    | { type: "title"; title: string }
-
-/** Document -> browser. */
-export type DocOutgoing =
-    | { type: "sync"; update: string }
-    | { type: "update"; update: string }
-    | { type: "ack" }
-    | { type: "awareness"; update: string }
-    | { type: "leave"; clientIds: number[] }
-    | { type: "presence"; users: Collaborator[] }
-    | { type: "deleted" }
-
-/** Lists documents for the home page. Only the backend talks to it. */
 export class DocIndex extends Actor<null, null, null> {
     @Ephemeral #orm = drizzle(this.db)
 
@@ -245,3 +198,50 @@ function fromBase64(text: string): Uint8Array {
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
     return bytes
 }
+
+/** The single DocIndex actor that lists every document. */
+export const INDEX_ID = "main"
+export const UNTITLED = "Untitled document"
+
+/** How long after an edit the document reports its title and preview to the index. */
+const INDEX_DELAY_MS = 500
+/** Merge stored Yjs updates into one row once there are more than this many. */
+const COMPACT_AFTER = 200
+
+export type DocSummary = {
+    id: string
+    title: string
+    preview: string
+    createdAt: number
+    updatedAt: number
+}
+
+/**
+ * Connection metadata. The backend sets who is connecting; the actor records the
+ * browser's Yjs awareness (cursor) state so it can replay it to people who join later.
+ */
+export type Member = {
+    userId: string
+    name: string
+    color: string
+    clientId?: number
+    awareness?: string
+}
+
+export type Collaborator = { userId: string; name: string; color: string }
+
+/** Browser -> Document. Binary Yjs updates travel as base64. */
+export type DocIncoming =
+    | { type: "update"; update: string }
+    | { type: "awareness"; clientId: number; update: string }
+    | { type: "title"; title: string }
+
+/** Document -> browser. */
+export type DocOutgoing =
+    | { type: "sync"; update: string }
+    | { type: "update"; update: string }
+    | { type: "ack" }
+    | { type: "awareness"; update: string }
+    | { type: "leave"; clientIds: number[] }
+    | { type: "presence"; users: Collaborator[] }
+    | { type: "deleted" }
