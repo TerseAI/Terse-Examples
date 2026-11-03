@@ -1,0 +1,25 @@
+{
+  "name": "collab-docs-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A small Google Docs-style editor: Elysia backend + React/TipTap frontend on Terse Durable Actors",
+  "type": "module",
+  "scripts": {
+    "start": "bun --no-env-file scripts/dev.ts",
+    "postinstall": "bun install --cwd web",
+    "dev:backend": "bun --watch src/backend.ts",
+    "dev:web": "bun run --cwd web dev",
+    "generate": "terse actor generate",
+    "check": "tsc --noEmit && bun run --cwd web check"
+  },
+  "dependencies": {
+    "elysia": "1.4.30"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "typescript": "~5.9.3",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.33"
+  },
+  "trustedDependencies": ["esbuild"]
+}
