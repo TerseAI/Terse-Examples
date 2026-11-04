@@ -1,0 +1,19 @@
+{
+  "name": "durable-chat",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "terse actor dev",
+    "check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@earendil-works/chord": "1.5.0",
+    "@earendil-works/pi-ai": "1.5.0",
+    "@earendil-works/pi-durable": "1.5.0",
+    "terse-sdk": "0.14.14"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

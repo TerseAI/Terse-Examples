@@ -1,0 +1,6 @@
+node_modules
+dist
+.terse
+.durable-actors
+.env
+.env.local
