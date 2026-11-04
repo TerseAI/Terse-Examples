@@ -1,0 +1,23 @@
+{
+  "name": "durable-chat-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Durable Chat: Elysia backend + Vite/React frontend on Terse Durable Actors",
+  "type": "module",
+  "scripts": {
+    "postinstall": "bun install --cwd web",
+    "dev:backend": "bun --watch src/backend.ts",
+    "dev:web": "bun run --cwd web dev",
+    "generate": "terse actor generate --non-interactive",
+    "check": "tsc --noEmit && bun run --cwd web check",
+    "start": "bun --no-env-file scripts/dev.ts"
+  },
+  "dependencies": {
+    "elysia": "1.4.30"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "typescript": "~5.9.3"
+  },
+  "trustedDependencies": ["esbuild"]
+}
