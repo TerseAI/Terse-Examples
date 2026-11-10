@@ -8,6 +8,12 @@ import { CodingTools } from "@earendil-works/pi-durable/tools"
 import { ModalSandbox } from "./modal/SandboxResource";
 import { Op } from "@earendil-works/chord/delta";
 
+// # Building a Mini Lovable
+
+// At it's heart, building a website builder need:
+// - A coordination layer
+// 
+
 
 export class PiAgent extends Actor<null, string, Outgoing> {
     @Resource private sandbox = new ModalSandbox(this.db)
