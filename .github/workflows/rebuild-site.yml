@@ -1,0 +1,31 @@
+# The examples pages on useterse.ai are built from this repo. Pushing to main
+# triggers a fresh deploy of the site so the pages pick up the change.
+#
+# Needs the repo secret VERCEL_DEPLOY_HOOK_URL: a deploy hook for the landing
+# page's Vercel project (Settings → Git → Deploy Hooks, branch main). Until it
+# is set, the run skips with a notice instead of failing.
+name: Rebuild useterse.ai examples
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: rebuild-site
+  cancel-in-progress: true
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Trigger a Vercel deploy of useterse.ai
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::notice::VERCEL_DEPLOY_HOOK_URL is not set, so the site was not rebuilt."
+            exit 0
+          fi
+          curl -fsS -X POST "$HOOK"
