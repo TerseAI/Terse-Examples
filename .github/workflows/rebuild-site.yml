@@ -4,6 +4,9 @@
 # Needs the repo secret VERCEL_DEPLOY_HOOK_URL: a deploy hook for the landing
 # page's Vercel project (Settings → Git → Deploy Hooks, branch main). Until it
 # is set, the run skips with a notice instead of failing.
+# Native Mintlify docs are synced independently by TerseAI/Terse. This requires
+# TERSE_DOCS_SYNC_TOKEN with Actions: write access to TerseAI/Terse. Install the
+# receiving sync-docs-examples.yml workflow on Terse's main branch before enabling.
 name: Rebuild useterse.ai examples
 
 on:
@@ -16,6 +19,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  sync-docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check docs sync token
+        env:
+          DOCS_SYNC_TOKEN: ${{ secrets.TERSE_DOCS_SYNC_TOKEN }}
+        run: |
+          if [ -z "$DOCS_SYNC_TOKEN" ]; then
+            echo "::error::TERSE_DOCS_SYNC_TOKEN is required with Actions: write access to TerseAI/Terse."
+            exit 1
+          fi
+      - name: Dispatch native docs sync
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.TERSE_DOCS_SYNC_TOKEN }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'TerseAI',
+              repo: 'Terse',
+              workflow_id: 'sync-docs-examples.yml',
+              ref: 'main',
+            });
+
   rebuild:
     runs-on: ubuntu-latest
     timeout-minutes: 2
